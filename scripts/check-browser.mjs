@@ -7,9 +7,9 @@ try {
   for (const [label,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
     const page=await browser.newPage({viewport:{width,height}});
     const errors=[];
-    page.on('pageerror',error=>{ if(!error.stack?.includes('challenges.cloudflare.com')) errors.push(error.message); });
+    page.on('pageerror',error=>errors.push(error.message));
     const missing=[];
-    page.on('response',r=>{if(r.url().startsWith('http://localhost:8080/')&&r.status()>=400)missing.push(r.url());});
+    page.on('response',r=>{if(r.url().startsWith('http://localhost:8080/')&&!r.url().endsWith('/api/contact')&&r.status()>=400)missing.push(r.url());});
     for(const [name,route] of [['home','/'],['gallery','/gallery/'],['contact','/contact/']]) {
       const response=await page.goto('http://localhost:8080'+route,{waitUntil:'domcontentloaded'});
       assert.equal(response.status(),200);
@@ -43,13 +43,42 @@ try {
         await menu.click();
       }
       if(name==='contact') {
-        assert.equal(await page.locator('#wpforms-form-356').count(),1);
-        assert.equal(await page.locator('#wpforms-356-field_10').getAttribute('type'),'email');
+        const form=page.locator('#contact-form');
+        assert.equal(await form.count(),1);
+        assert.equal(await page.locator('.cf-turnstile').count(),0);
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
+        await form.screenshot({path:`screenshots/contact-form-${label}.png`});
+        const submissions=[];
+        let succeed=false;
+        await page.route('**/api/contact',async route=>{
+          submissions.push(route.request().postDataJSON());
+          await new Promise(resolve=>setTimeout(resolve,150));
+          await route.fulfill({status:succeed?200:502,contentType:'application/json',body:JSON.stringify(succeed?{success:true}:{error:'Please try again or email info@mam.london.'})});
+        });
+        await page.getByRole('button',{name:'Send enquiry'}).click();
+        assert.equal(submissions.length,0,'Empty form does not submit');
+        await page.getByLabel('First name').fill('Alex');
+        await page.getByLabel('Last name').fill('Example');
+        await page.getByLabel('Email address').fill('alex@example.com');
+        await page.getByLabel('Your project').fill('A kitchen renovation in London.');
+        const button=page.getByRole('button',{name:'Send enquiry'});
+        await button.click();
+        await page.locator('#contact-status[data-state="error"]').waitFor();
+        assert.equal(await page.getByLabel('Your project').inputValue(),'A kitchen renovation in London.','Failure preserves message');
+        succeed=true;
+        await button.click();
+        await page.locator('#contact-status[data-state="success"]').waitFor();
+        assert.equal(submissions.length,2);
+        assert.equal(submissions[0].requestId,submissions[1].requestId,'Retry prevents duplicate email');
+        assert.equal(submissions[1].email,'alex@example.com');
+        assert.equal(submissions[1].website,'');
+        assert.equal(await page.getByLabel('Your project').inputValue(),'','Success resets form');
+        await page.unroute('**/api/contact');
       }
     }
     assert.deepEqual(missing,[],`${label}: missing local resources`);
     assert.deepEqual(errors,[],`${label}: browser runtime errors`);
     await page.close();
   }
-  console.log('Desktop and mobile routes, local assets, images, FAQ and contact fields passed.');
+  console.log('Desktop and mobile pages, gallery, FAQ, contact layout, validation, failure and retry/success flows passed.');
 } finally {await browser.close();}

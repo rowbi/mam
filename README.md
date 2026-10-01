@@ -22,22 +22,24 @@ Check the generated `pages.dev` preview before adding `mam.london` and `www.mam.
 
 ## Contact form
 
-The visible fields and styling match the old form. WordPress processing is replaced by a Cloudflare Pages Function at `/api/contact`, using Resend and Cloudflare Turnstile.
+The contact form has been redesigned with visible labels, larger fields, a responsive layout and a gold enquiry button. It sends via Resend through the Cloudflare Pages Function at `/api/contact`. There is no Turnstile widget or Turnstile secret to configure. A hidden honeypot catches simple spambots; server-side validation and same-origin checks also apply. This is basic spam filtering, not a full bot-prevention service.
 
-Add these variables in Cloudflare Pages → Settings → Variables and Secrets, for Production and Preview if both are being tested:
+### Enable email delivery
 
-| Variable | Purpose |
+1. In [Resend](https://resend.com/domains), add and verify `mam.london` by adding the DNS records Resend supplies. Preserve your existing mailbox MX records. If you verify a sending subdomain instead, use that subdomain in `CONTACT_FROM`.
+2. Create a Resend API key with **Sending access** for the verified domain.
+3. In Cloudflare Pages → Settings → Variables and Secrets, add:
+
+| Variable | Value |
 | --- | --- |
-| `RESEND_API_KEY` | Secret API key from your Resend account. |
-| `CONTACT_FROM` | Sender on a domain verified in Resend, e.g. `MAM London <website@mam.london>`. |
-| `CONTACT_TO` | Enquiry recipient; defaults to `info@mam.london`. |
-| `TURNSTILE_SECRET_KEY` | Secret for the Turnstile widget used on this site. |
+| `RESEND_API_KEY` | Your Resend key, saved as a **secret**. Required. |
+| `CONTACT_FROM` | Optional; defaults to `MAM London <website@mam.london>`. Must use a domain verified in Resend. |
+| `CONTACT_TO` | Optional; defaults to `info@mam.london`. |
 
-The existing public Turnstile site key is preserved in `public/contact/index.html`. If using a new widget, replace its `data-sitekey` value there. Allow `mam.london`, `www.mam.london`, and the Pages preview hostname in the widget's hostname settings. Redeploy after updating variables.
+4. Add the variables to Production and Preview if you use both, then redeploy. Remove any old `TURNSTILE_SECRET_KEY`; it is no longer used.
+5. Send an enquiry through the deployed Contact page and confirm receipt in `info@mam.london`. Replies go directly to the visitor's email address.
 
-Until these settings are supplied, the form shows an honest setup message with the company's email address and phone number. It never reports a successful send when no email was sent. Name and email are validated, the captcha is verified server-side, and messages use the visitor's email as Reply-To.
-
-Email delivery cannot be verified without your own credentials. Send a test enquiry after configuration and confirm receipt before retiring the old server.
+The API key stays on the server. The form only reports success after Resend accepts the email and returns its ID. Failed requests keep the entered message, and retries reuse an idempotency key to avoid duplicate emails. A missing API key displays a setup message with direct contact details. Automated tests mock Resend and do not send real emails; live delivery must be checked after configuring your credentials.
 
 ## Existing quirks preserved
 

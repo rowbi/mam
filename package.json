@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "test": "node --test tests/contact.test.mjs",
     "preview": "python3 -m http.server 8080 --directory dist"
   }
 }
