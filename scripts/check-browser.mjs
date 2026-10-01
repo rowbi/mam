@@ -7,7 +7,7 @@ try {
   for (const [label,width,height] of [['desktop',1440,900],['mobile',390,844]]) {
     const page=await browser.newPage({viewport:{width,height}});
     const errors=[];
-    page.on('pageerror',error=>errors.push(error.message));
+    page.on('pageerror',error=>{ if(!error.stack?.includes('challenges.cloudflare.com')) errors.push(error.message); });
     const missing=[];
     page.on('response',r=>{if(r.url().startsWith('http://localhost:8080/')&&r.status()>=400)missing.push(r.url());});
     for(const [name,route] of [['home','/'],['gallery','/gallery/'],['contact','/contact/']]) {
@@ -33,7 +33,7 @@ try {
       if (name==='gallery') {
         const photo=page.locator('a[data-elementor-open-lightbox="yes"]').first();
         await photo.click();
-        await page.locator('.elementor-lightbox').waitFor({state:'visible'});
+        await page.locator('.mfp-wrap').waitFor({state:'visible'});
         await page.keyboard.press('Escape');
       }
       if(label==='mobile') {
