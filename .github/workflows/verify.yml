@@ -1,0 +1,27 @@
+name: Verify migrated website
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run build
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          python3 -m http.server 8080 --directory dist > /tmp/mam-preview.log 2>&1 &
+          node scripts/check-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: website-preview-screenshots
+          path: screenshots/
