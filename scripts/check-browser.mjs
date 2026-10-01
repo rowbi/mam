@@ -16,17 +16,31 @@ try {
       await page.evaluate(async()=>{await document.fonts.ready;});
       // Scroll through the page to load gallery pictures and reveal animations.
       const total=await page.evaluate(()=>document.body.scrollHeight);
-      for(let y=0;y<total;y+=height) await page.evaluate(y=>window.scrollTo(0,y),y);
+      for(let y=0;y<total;y+=height) { await page.evaluate(y=>window.scrollTo(0,y),y); await page.waitForTimeout(150); }
       await page.evaluate(()=>window.scrollTo(0,0));
+      await page.waitForTimeout(1200);
       await page.locator('.elementor-heading-title').first().waitFor({state:'visible'});
       await page.locator('img[src]').evaluateAll(async images => { await Promise.all(images.map(i => i.decode().catch(() => {}))); });
       await page.screenshot({path:`screenshots/${name}-${label}.png`,fullPage:true});
       const broken=await page.evaluate(()=>[...document.images].filter(i=>i.getAttribute('src')&&!i.getAttribute('src').startsWith('data:')&&(!i.complete||!i.naturalWidth)).map(i=>i.src));
       assert.deepEqual(broken,[],`${name}/${label}: broken images`);
       if(name==='home') {
+        console.log(name,label,'runtime errors',errors,'missing assets',missing);
         const faq=page.locator('.elementor-tab-title').first();
         await faq.click();
         assert.equal(await faq.getAttribute('aria-expanded'),'true','FAQ opens');
+      }
+      if (name==='gallery') {
+        const photo=page.locator('a[data-elementor-open-lightbox="yes"]').first();
+        await photo.click();
+        await page.locator('.elementor-lightbox').waitFor({state:'visible'});
+        await page.keyboard.press('Escape');
+      }
+      if(label==='mobile') {
+        const menu=page.locator('.eael-simple-menu-toggle');
+        await menu.click();
+        await page.getByRole('link',{name:'Gallery',exact:true}).first().waitFor({state:'visible'});
+        await menu.click();
       }
       if(name==='contact') {
         assert.equal(await page.locator('#wpforms-form-356').count(),1);
