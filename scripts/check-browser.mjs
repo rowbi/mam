@@ -11,7 +11,7 @@ try {
     const missing=[];
     page.on('response',r=>{if(r.url().startsWith('http://localhost:8080/')&&r.status()>=400)missing.push(r.url());});
     for(const [name,route] of [['home','/'],['gallery','/gallery/'],['contact','/contact/']]) {
-      const response=await page.goto('http://localhost:8080'+route,{waitUntil:'networkidle'});
+      const response=await page.goto('http://localhost:8080'+route,{waitUntil:'domcontentloaded'});
       assert.equal(response.status(),200);
       await page.evaluate(async()=>{await document.fonts.ready;});
       // Scroll through the page to load gallery pictures and reveal animations.
