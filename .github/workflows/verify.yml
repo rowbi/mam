@@ -15,9 +15,10 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      # Check a fresh checkout without dist before creating the Pages output.
+      - run: npm run check:worker
       - run: npm run build
       - run: npm test
-      - run: npm run check:worker
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - run: |

@@ -6,7 +6,7 @@ This is a public website migration. It does not include the WordPress administra
 
 ## Deploy to Cloudflare Workers
 
-This repository supports a **Worker with Static Assets**. The Worker entry point in `src/worker.js` handles `/api/contact`; the remaining pages and files are served from `dist`. `wrangler.jsonc` deploys both parts together. A static-assets-only Worker cannot use the Resend secret.
+This repository supports a **Worker with Static Assets**. The Worker entry point in `src/worker.js` handles `/api/contact`; the remaining pages and files are served directly from `public`. `wrangler.jsonc` deploys both parts together. The Worker uses committed files in `public`, so `npx wrangler deploy` also works when the dashboard skips the build command. The build step still produces `dist` for Pages and static previews. A static-assets-only Worker cannot use the Resend secret.
 
 For the existing Worker connected to `rowbi/mam`, open **Settings → Build** and use:
 
