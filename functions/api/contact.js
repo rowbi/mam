@@ -1,3 +1,5 @@
+import { enquiryEmail } from '../../src/email/enquiry.js';
+
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
 });
@@ -33,7 +35,7 @@ export async function onRequestPost({ request, env }) {
         from: env.CONTACT_FROM || 'MAM London <website@mam.london>',
         to: [env.CONTACT_TO || 'callum@monacoevents.co.uk'], reply_to: email.trim(),
         subject: 'New MAM London website enquiry',
-        text: `Name: ${first.trim()} ${last.trim()}\nEmail: ${email.trim()}\n\n${message.trim()}`
+        ...enquiryEmail({ first, last, email, message })
       })
     });
     if (!sent.ok) return json({ error: failure }, 502);

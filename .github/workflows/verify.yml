@@ -25,6 +25,7 @@ jobs:
           npm run preview:worker > /tmp/mam-preview.log 2>&1 &
           node scripts/check-worker.mjs
           node scripts/check-browser.mjs
+          node scripts/check-email.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
