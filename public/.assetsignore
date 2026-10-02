@@ -1,0 +1,2 @@
+# Pages routing metadata is not needed by Workers.
+_routes.json
