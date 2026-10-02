@@ -22,7 +22,7 @@ test('Contact delivery and failure handling',async t=>{
       assert.equal(calls[0].options.headers.Authorization,'Bearer test-key');
       assert.equal(calls[0].options.headers['Idempotency-Key'],`mam-contact/${data.requestId}`);
       assert.deepEqual(JSON.parse(calls[0].options.body),{
-        from:'MAM London <website@mam.london>',to:['info@mam.london'],reply_to:'alex@example.com',
+        from:'MAM London <website@mam.london>',to:['callum@monacoevents.co.uk'],reply_to:'alex@example.com',
         subject:'New MAM London website enquiry',text:'Name: Alex Example\nEmail: alex@example.com\n\nA London renovation.'
       });
     });

@@ -32,6 +32,8 @@ Pages is also supported by the existing `functions/` directory. Use branch `main
 
 The contact form has been redesigned with visible labels, larger fields, a responsive layout and a gold enquiry button. It sends via Resend through the server endpoint at `/api/contact`. There is no Turnstile widget or Turnstile secret to configure. A hidden honeypot catches simple spambots; server-side validation and same-origin checks also apply. This is basic spam filtering, not a full bot-prevention service.
 
+The recipient is temporarily set to `callum@monacoevents.co.uk` for testing. The public contact details and sender remain MAM London. Change `CONTACT_TO` in `wrangler.jsonc` and the server default when testing is complete.
+
 ### Enable email delivery
 
 1. In [Resend](https://resend.com/domains), add and verify `mam.london` by adding the DNS records Resend supplies. Preserve your existing mailbox MX records. If you verify a sending subdomain instead, use that subdomain in `CONTACT_FROM`.
@@ -42,10 +44,10 @@ The contact form has been redesigned with visible labels, larger fields, a respo
 | --- | --- |
 | `RESEND_API_KEY` | Your Resend key, saved as a **secret**. Required. |
 | `CONTACT_FROM` | Optional; defaults to `MAM London <website@mam.london>`. Must use a domain verified in Resend. |
-| `CONTACT_TO` | Optional; defaults to `info@mam.london`. |
+| `CONTACT_TO` | Test recipient: `callum@monacoevents.co.uk`, configured in `wrangler.jsonc` and used as the server default. |
 
 4. Save the runtime secret and deploy it. If using Pages, add the variables to Production and Preview if you use both, then redeploy. Remove any old `TURNSTILE_SECRET_KEY`; it is no longer used.
-5. Send an enquiry through the deployed Contact page and confirm receipt in `info@mam.london`. Replies go directly to the visitor's email address.
+5. Send an enquiry through the deployed Contact page and confirm receipt in `callum@monacoevents.co.uk`. Replies go directly to the visitor's email address.
 
 The API key stays on the server. The form only reports success after Resend accepts the email and returns its ID. Failed requests keep the entered message, and retries reuse an idempotency key to avoid duplicate emails. A missing API key displays a setup message with direct contact details. Automated tests mock Resend and do not send real emails; live delivery must be checked after configuring your credentials.
 

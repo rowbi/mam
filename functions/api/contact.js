@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
       headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `mam-contact/${requestId}` },
       body: JSON.stringify({
         from: env.CONTACT_FROM || 'MAM London <website@mam.london>',
-        to: [env.CONTACT_TO || 'info@mam.london'], reply_to: email.trim(),
+        to: [env.CONTACT_TO || 'callum@monacoevents.co.uk'], reply_to: email.trim(),
         subject: 'New MAM London website enquiry',
         text: `Name: ${first.trim()} ${last.trim()}\nEmail: ${email.trim()}\n\n${message.trim()}`
       })
