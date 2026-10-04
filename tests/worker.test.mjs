@@ -26,3 +26,9 @@ test('Worker exposes contact endpoint instead of serving an asset',async()=>{
   }
   assert.equal((await worker.fetch(new Request('https://mam.london/api/unknown'),env)).status,404);
 });
+
+test('WWW pages redirect to the canonical host and preserve the path',async()=>{
+  const response=await worker.fetch(new Request('https://www.mam.london/gallery/?view=all'),{});
+  assert.equal(response.status,308);
+  assert.equal(response.headers.get('Location'),'https://mam.london/gallery/?view=all');
+});

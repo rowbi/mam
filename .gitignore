@@ -1,5 +1,6 @@
 dist/
 node_modules/
+screenshots/
 .wrangler/
 .env
 .env.*

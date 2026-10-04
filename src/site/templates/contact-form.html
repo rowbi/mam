@@ -1,0 +1,15 @@
+<form id="contact-form" class="contact-form" action="/api/contact" method="post">
+  <div class="honeypot" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+  <div class="form-split">
+    <div class="form-row"><label for="first">First name</label><input data-slot="input" id="first" name="first" placeholder="Jane" required maxlength="100" autocomplete="given-name"></div>
+    <div class="form-row"><label for="last">Last name</label><input data-slot="input" id="last" name="last" placeholder="Smith" required maxlength="100" autocomplete="family-name"></div>
+  </div>
+  <div class="form-split">
+    <div class="form-row"><label for="email">Email address</label><input data-slot="input" id="email" name="email" type="email" placeholder="jane@example.com" required maxlength="254" autocomplete="email"></div>
+    <div class="form-row"><label for="phone">Phone <span>Optional</span></label><input data-slot="input" id="phone" name="phone" type="tel" placeholder="+44" maxlength="50" autocomplete="tel"></div>
+  </div>
+  <div class="form-row"><label for="message">Tell us about your project</label><textarea data-slot="textarea" id="message" name="message" placeholder="The property, the work you have in mind, and any timing we should know about…" required minlength="20" maxlength="10000" rows="7"></textarea></div>
+  <div class="form-submit"><button data-slot="button" type="submit">Send enquiry</button><p>By sending this form, you agree that MAM London may contact you about your enquiry.</p></div>
+  <p id="contact-status" class="form-status" role="status" aria-live="polite" hidden></p>
+  <noscript><p>Please enable JavaScript to send an enquiry, or email <a href="mailto:info@mam.london">info@mam.london</a>.</p></noscript>
+</form>

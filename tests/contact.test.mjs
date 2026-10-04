@@ -37,6 +37,13 @@ test('Contact delivery and failure handling',async t=>{
       await submit(data,{...env,CONTACT_TO:'info@mam.london'});
       assert.deepEqual(JSON.parse(calls.at(-1).options.body).to,['info@mam.london']);
     });
+    await t.test('optional phone is delivered and invalid phone is rejected',async()=>{
+      await submit({...data,phone:'+44 7789 755330'});
+      const email=JSON.parse(calls.at(-1).options.body);
+      assert.match(email.text,/Phone: \+44 7789 755330/);
+      assert.match(email.html,/\+44 7789 755330/);
+      for(const phone of [123,'x'.repeat(51),'123\r\nInjected'])assert.equal((await submit({...data,phone})).status,400);
+    });
     await t.test('rejects invalid fields, oversized payloads and unrelated origins without sending',async()=>{
       calls.length=0;
       for(const invalid of [null,[],{}, {...data,email:'bad'}, {...data,email:'a@example.com\r\nBcc: x@example.com'}, {...data,message:' '}, {...data,first:123}, {...data,requestId:'bad'}]) {

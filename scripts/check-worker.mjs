@@ -9,7 +9,7 @@ for(let attempt=0;attempt<60;attempt++) {
   await new Promise(resolve=>setTimeout(resolve,1000));
 }
 assert.ok(ready,'Worker contact endpoint did not start');
-for(const route of ['/', '/gallery/', '/contact/', '/contact-form.css']) {
+for(const route of ['/', '/services/', '/gallery/', '/contact/', '/site.css', '/site.js', '/favicon.svg', '/favicon.ico', '/apple-touch-icon.png', '/robots.txt', '/sitemap.xml']) {
   const response=await fetch(base+route);
   assert.equal(response.status,200,route);
   if(route.endsWith('/')) assert.match(await response.text(),/<html/i);

@@ -18,11 +18,11 @@ export async function onRequestPost({ request, env }) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'Invalid form submission.' }, 400);
   // A hidden field catches simple spambots without interrupting visitors.
   if (body.website) return json({ success: true });
-  const { first, last, email, message, requestId } = body;
+  const { first, last, email, message, requestId, phone = '' } = body;
   if (![first, last, email, message, requestId].every(value => typeof value === 'string') ||
       !first.trim() || !last.trim() || first.length > 100 || last.length > 100 ||
       email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ||
-      /[\r\n]/.test(email) || !message.trim() || message.length > 10000 ||
+      /[\r\n]/.test(email) || typeof phone !== 'string' || phone.length > 50 || /[\r\n]/.test(phone) || !message.trim() || message.length > 10000 ||
       !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(requestId)) {
     return json({ error: 'Please enter your name, a valid email address and a message.' }, 400);
   }
@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env }) {
         from: env.CONTACT_FROM || 'MAM London <website@mam.london>',
         to: [env.CONTACT_TO || 'callum@monacoevents.co.uk'], reply_to: email.trim(),
         subject: 'New MAM London website enquiry',
-        ...enquiryEmail({ first, last, email, message })
+        ...enquiryEmail({ first, last, email, message, phone })
       })
     });
     if (!sent.ok) return json({ error: failure }, 502);

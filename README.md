@@ -1,80 +1,67 @@
-# MAM London — Cloudflare migration
+# MAM London
 
-A static copy of the existing public WordPress website, captured on 1 October 2026. The original Home, Gallery and Contact page markup, styling, layout, logo, photography, typography and Elementor interactions are retained. Assets are stored in this repository and served locally. No PHP, WordPress database or AWS server is required.
+The September MAM London design, ported to a fast static website with a Cloudflare Worker for Resend enquiries. Includes Home, Services, Gallery and Contact. All navigation uses ordinary page links; pages remain readable without JavaScript. The gallery contains the original 20 photographs and the seven October uploads.
 
-This is a public website migration. It does not include the WordPress administration area, editing tools, database, historical form submissions or mailboxes.
+## Cloudflare deployment
 
-## Deploy to Cloudflare Workers
-
-This repository supports a **Worker with Static Assets**. The Worker entry point in `src/worker.js` handles `/api/contact`; the remaining pages and files are served directly from `public`. `wrangler.jsonc` deploys both parts together. The Worker uses committed files in `public`, so `npx wrangler deploy` also works when the dashboard skips the build command. The build step still produces `dist` for Pages and static previews. A static-assets-only Worker cannot use the Resend secret.
-
-For the existing Worker connected to `rowbi/mam`, open **Settings → Build** and use:
+The existing Worker is `mam`, connected to this repository. Keep these build settings:
 
 | Setting | Value |
 | --- | --- |
 | Production branch | `main` |
 | Build command | `npm run build` |
 | Deploy command | `npm run deploy` |
-| Root directory | Repository root / leave blank |
-| Node.js | 22 or newer (set build variable `NODE_VERSION=22` if needed) |
+| Root directory | Repository root |
+| Node.js | 22 or newer |
 
-The configured Worker name is `mam`. If your existing Worker has a different name, use `npm run deploy -- --name YOUR_EXISTING_WORKER_NAME` as the deploy command, and the same name override for preview deployments. Do not create a second Worker accidentally.
+The Worker serves committed `public/` files and handles `/api/contact`. A direct `npx wrangler deploy` also works. If the dashboard's existing Worker has a different name, use `npm run deploy -- --name YOUR_EXISTING_WORKER_NAME`. This project does not deploy the older ChatGPT preview.
 
-Redeploy the latest `main` commit. Once that deployment includes the Worker script, open **Settings → Variables and Secrets** to add the Resend runtime secret. These are separate from **Build variables and secrets**, which are only available during builds. A successful deployment responds to `GET /api/contact` with JSON and HTTP 405; an HTML page or static 404 means the contact endpoint is not deployed.
+Cloudflare Pages is also supported: build `npm run build`, output `dist`, framework preset None. Pages uses `functions/api/contact.js`.
 
-Check the `workers.dev` preview before adding `mam.london` and `www.mam.london` under Settings → Domains & Routes. Leave AWS running until the domain has switched and the website and contact form have been checked. Preserve any MX and email-related DNS records; this repository does not migrate email hosting.
+## Resend contact form
 
-### If you already use Pages
+Set these **runtime** values in Cloudflare → Worker → Settings → Variables and Secrets (not build variables):
 
-Pages is also supported by the existing `functions/` directory. Use branch `main`, framework preset None, build command `npm run build`, output directory `dist`, and leave the root directory blank. Add runtime variables in the Pages project settings. The Worker deploy command above applies to Workers, not Pages.
-
-## Contact form
-
-The contact form has been redesigned with visible labels, larger fields, a responsive layout and a gold enquiry button. It sends via Resend through the server endpoint at `/api/contact`. There is no Turnstile widget or Turnstile secret to configure. A hidden honeypot catches simple spambots; server-side validation and same-origin checks also apply. This is basic spam filtering, not a full bot-prevention service.
-
-The recipient is temporarily set to `callum@monacoevents.co.uk` for testing. The public contact details and sender remain MAM London. To change it back, set the runtime variable `CONTACT_TO=info@mam.london` under Worker → Settings → Variables and Secrets, then save/deploy that configuration. `keep_vars` preserves dashboard variables on future deployments; the recipient is no longer hardcoded in `wrangler.jsonc`. The test address is only the fallback when `CONTACT_TO` is absent.
-
-### Enable email delivery
-
-1. In [Resend](https://resend.com/domains), add and verify `mam.london` by adding the DNS records Resend supplies. Preserve your existing mailbox MX records. If you verify a sending subdomain instead, use that subdomain in `CONTACT_FROM`.
-2. Create a Resend API key with **Sending access** for the verified domain.
-3. In your Cloudflare Worker → Settings → Variables and Secrets, add:
-
-| Variable | Value |
+| Name | Value |
 | --- | --- |
-| `RESEND_API_KEY` | Your Resend key, saved as a **secret**. Required. |
-| `CONTACT_FROM` | Optional; defaults to `MAM London <website@mam.london>`. Must use a domain verified in Resend. |
-| `CONTACT_TO` | Recipient email address. Set this runtime variable in Cloudflare; it overrides the test fallback `callum@monacoevents.co.uk`. |
+| `RESEND_API_KEY` | Resend sending key, saved as a secret |
+| `CONTACT_TO` | Recipient email address; use `info@mam.london` for the business inbox |
+| `CONTACT_FROM` | Optional; defaults to `MAM London <website@mam.london>` |
 
-4. Save the runtime secret and deploy it. If using Pages, add the variables to Production and Preview if you use both, then redeploy. Remove any old `TURNSTILE_SECRET_KEY`; it is no longer used.
-5. Send an enquiry through the deployed Contact page and confirm receipt in `callum@monacoevents.co.uk`. Replies go directly to the visitor's email address.
+The sender domain must be verified in Resend. Existing dashboard variables are preserved by `keep_vars`. For continuity with the existing test setup, an absent `CONTACT_TO` still falls back to `callum@monacoevents.co.uk`. Switch the runtime variable when ready. Mailbox hosting and MX records are independent of this website.
 
-Enquiries arrive as a branded HTML email with the MAM logo, labelled form fields and a reply button. The logo is embedded in the email, and a plain text alternative is included for clients that need it. Visitor text is escaped before inserting it into HTML.
+The form sends first name, last name, email, optional phone and project description. Enquiries include a branded HTML email, an embedded logo and visitor reply-to. Server validation, a honeypot and same-origin checks run before delivery. Retries of the same enquiry share an idempotency key. Success is shown only after Resend accepts the request; failed submissions retain their content. Credentials never reach the browser.
 
-The API key stays on the server. The form only reports success after Resend accepts the email and returns its ID. Failed requests keep the entered message, and retries reuse an idempotency key to avoid duplicate emails. A missing API key displays a setup message with direct contact details. Automated tests mock Resend and do not send real emails; live delivery must be checked after configuring your credentials.
+Automated checks mock email delivery. Confirm live receipt through the deployed Contact page once the runtime key, verified sender and recipient are configured.
 
-## Existing quirks preserved
+## Editing content and photographs
 
-- The homepage has a “No posts found!” news section. The source WordPress site has no published posts.
-- The existing `/blog` link leads to a 404. The original error page is retained as `public/404.html`.
-- Two old decorative ellipse images are missing on the live website. Their existing empty display is preserved without making requests to the retired domain.
-- Existing Google Analytics and Google Maps integrations are retained. The website does not depend on the previous host for their assets.
+- Page structure: `src/site/templates/*.html`.
+- Services, FAQs and original photo list: `src/site/data.mjs`.
+- New photo list: `src/site/new-photos.json`.
+- Photography files: `public/images/gallery/`.
+- Image dimensions for layout stability: `src/site/image-dimensions.json`.
+- Styling and gallery/form enhancement: `public/site.css`, `public/site.js`.
+- SEO metadata, navigation and page generation: `scripts/build.mjs`.
 
-## Editing and previewing
+Each gallery entry is `[image path, descriptive alt text, visible caption, shape]`. Shape is `wide`, `tall` or `square`. Remove or reorder entries to change the gallery; keep an image file while another page still references it. Run `npm run build` after editing source templates or data and commit the generated `public/` pages as well, so dashboard deployments which skip the build still serve the current website.
 
-Page files are in `public/index.html`, `public/gallery/index.html` and `public/contact/index.html`. Original vendor assets keep their `wp-content` / `wp-includes` paths for compatibility; these are ordinary static files, not a running WordPress installation.
+All uploaded photos are local WebP assets with metadata removed. Existing photographs are retained; two new interior images also appear in the Home and Services layouts. No stock or generated project photographs were added.
 
-```sh
-npm run build
-npm run preview
-```
+## SEO and branding
 
-The static preview opens at `http://localhost:8080`. For the full Worker and contact endpoint:
+Each page has its own title, description, canonical URL, social-sharing metadata and structured business/page data. Canonicals and `sitemap.xml` use `https://mam.london`. `robots.txt` allows crawling and excludes the API. Content is present in the initial HTML, with one main heading per page, descriptive image alternatives, dimensions and lazy loading below the fold. SVG/ICO favicon and Apple touch icon use the recovered MAM branding.
+
+## Local checks
 
 ```sh
 npm ci
 npm run build
+npm test
+npm run check:worker
 npm run preview:worker
 ```
 
-Store local secrets in `.dev.vars` (ignored by git), using the names in `.env.example`. To validate the deployment bundle without publishing, run `npm run check:worker`. Automated CI also tests the actual local Workers runtime, static routes and contact endpoint. Do not commit keys or credentials.
+Preview runs at `http://localhost:8080`. After starting it, the browser/Worker checks in `scripts/check-*.mjs` verify all routes, desktop/mobile navigation, image loading, SEO metadata, gallery controls and contact validation, error and retry/success behaviour. Browser checks require Playwright/Chromium. CI runs these checks automatically on `main` and saves screenshots.
+
+Use an ignored `.dev.vars` for local runtime secrets; never commit credentials.

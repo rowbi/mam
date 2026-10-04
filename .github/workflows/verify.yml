@@ -1,4 +1,4 @@
-name: Verify migrated website
+name: Verify MAM London website
 on:
   push:
     branches: [main]
