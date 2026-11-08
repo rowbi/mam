@@ -25,10 +25,10 @@ Set these **runtime** values in Cloudflare → Worker → Settings → Variables
 | Name | Value |
 | --- | --- |
 | `RESEND_API_KEY` | Resend sending key, saved as a secret |
-| `CONTACT_TO` | Recipient email address; use `info@mam.london` for the business inbox |
+| `CONTACT_TO` | Recipient email address; configured as `mariusz.moniuszko@gmail.com` in `wrangler.jsonc` |
 | `CONTACT_FROM` | Optional; defaults to `MAM London <website@mam.london>` |
 
-The sender domain must be verified in Resend. Existing dashboard variables are preserved by `keep_vars`. For continuity with the existing test setup, an absent `CONTACT_TO` still falls back to `callum@monacoevents.co.uk`. Switch the runtime variable when ready. Mailbox hosting and MX records are independent of this website.
+The sender domain must be verified in Resend. The recipient is set in `wrangler.jsonc` so Worker deployments update any previous recipient setting. Other existing dashboard variables are preserved by `keep_vars`. If `CONTACT_TO` is absent (for example on Pages), the form also defaults to `mariusz.moniuszko@gmail.com`. Mailbox hosting and MX records are independent of this website.
 
 The form sends first name, last name, email, optional phone and project description. Enquiries include a branded HTML email, an embedded logo and visitor reply-to. Server validation, a honeypot and same-origin checks run before delivery. Retries of the same enquiry share an idempotency key. Success is shown only after Resend accepts the request; failed submissions retain their content. Credentials never reach the browser.
 
