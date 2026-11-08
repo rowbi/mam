@@ -12,7 +12,7 @@ const routes = [
   ['home', '/', 'MAM London | Residential Builders & Bespoke Joinery', 'High-end home renovations, loft conversions, tailored kitchens and bespoke joinery across London. Family-run since 1999.'],
   ['services', '/services/', 'Renovations, Kitchens & Bespoke Joinery | MAM London', 'Explore MAM London’s residential building services: turnkey renovations, loft conversions, tailored kitchens, fit-outs, joinery, windows and doors.'],
   ['gallery', '/gallery/', 'Residential Renovation & Joinery Gallery | MAM London', 'See MAM London’s home renovations, kitchens, extensions and bespoke joinery, including completed interiors and work in progress.'],
-  ['contact', '/contact/', 'Contact MAM London | Discuss Your Building Project', 'Contact MAM London about your renovation, loft conversion, kitchen or joinery project. Email mariusz.moniuszko@gmail.com or call +44 (0) 7789 755330.'],
+  ['contact', '/contact/', 'Contact MAM London | Discuss Your Building Project', 'Contact MAM London about your renovation, loft conversion, kitchen or joinery project. Email info@mam.london or call +44 (0) 7789 755330.'],
 ];
 const header = await template('site-header');
 const footer = render(await template('site-footer'), {year:new Date().getFullYear()});
@@ -28,7 +28,7 @@ const components = {
 function document(content, title, description, route, pageName, noindex=false) {
   const url = origin + route;
   const structuredData = {'@context':'https://schema.org','@graph':[
-    {'@type':'GeneralContractor','@id':origin+'/#business',name:'MAM London',url:origin,logo:origin+'/logo.svg',image:origin+'/images/hero-home.webp',telephone:'+447789755330',email:'mariusz.moniuszko@gmail.com',areaServed:{'@type':'City',name:'London'}},
+    {'@type':'GeneralContractor','@id':origin+'/#business',name:'MAM London',url:origin,logo:origin+'/logo.svg',image:origin+'/images/hero-home.webp',telephone:'+447789755330',email:'info@mam.london',areaServed:{'@type':'City',name:'London'}},
     {'@type':'WebSite','@id':origin+'/#website',url:origin,name:'MAM London',publisher:{'@id':origin+'/#business'},inLanguage:'en-GB'},
     {'@type':pageName==='contact'?'ContactPage':pageName==='gallery'?'CollectionPage':'WebPage','@id':url+'#page',url,name:title,description,isPartOf:{'@id':origin+'/#website'},about:{'@id':origin+'/#business'},inLanguage:'en-GB'},
     ...(route==='/'?[]:[{'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Home',item:origin+'/'},{'@type':'ListItem',position:2,name:pageName.charAt(0).toUpperCase()+pageName.slice(1),item:url}]}]),

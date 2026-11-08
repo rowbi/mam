@@ -49,7 +49,7 @@ try {
       }
       if(name==='contact' && (label==='desktop'||label==='mobile')) {
         const submissions=[];let succeed=false;
-        await page.route('**/api/contact',async route=>{submissions.push(route.request().postDataJSON());await route.fulfill({status:succeed?200:502,contentType:'application/json',body:JSON.stringify(succeed?{success:true}:{error:'Please try again or email mariusz.moniuszko@gmail.com.'})});});
+        await page.route('**/api/contact',async route=>{submissions.push(route.request().postDataJSON());await route.fulfill({status:succeed?200:502,contentType:'application/json',body:JSON.stringify(succeed?{success:true}:{error:'Please try again or email info@mam.london.'})});});
         const button=page.getByRole('button',{name:'Send enquiry'});
         await button.click();assert.equal(submissions.length,0,'Empty form cannot submit');
         await page.getByLabel('First name').fill('Alex');await page.getByLabel('Last name').fill('Example');

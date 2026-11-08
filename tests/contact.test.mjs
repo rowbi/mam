@@ -24,7 +24,7 @@ test('Contact delivery and failure handling',async t=>{
       const sent=JSON.parse(calls[0].options.body);
       const {html,attachments,...fields}=sent;
       assert.deepEqual(fields,{
-        from:'MAM London <website@mam.london>',to:['mariusz.moniuszko@gmail.com'],reply_to:'alex@example.com',
+        from:'MAM London <website@mam.london>',to:['info@mam.london','mariusz.moniuszko@gmail.com'],reply_to:'alex@example.com',
         subject:'New MAM London website enquiry',text:'Name: Alex Example\nEmail: alex@example.com\n\nA London renovation.'
       });
       assert.match(html, /New project enquiry/);
@@ -36,6 +36,10 @@ test('Contact delivery and failure handling',async t=>{
     await t.test('runtime recipient overrides the default recipient',async()=>{
       await submit(data,{...env,CONTACT_TO:'enquiries@example.com'});
       assert.deepEqual(JSON.parse(calls.at(-1).options.body).to,['enquiries@example.com']);
+    });
+    await t.test('comma-separated runtime recipients are sent as separate addresses',async()=>{
+      await submit(data,{...env,CONTACT_TO:' info@mam.london, mariusz.moniuszko@gmail.com, '});
+      assert.deepEqual(JSON.parse(calls.at(-1).options.body).to,['info@mam.london','mariusz.moniuszko@gmail.com']);
     });
     await t.test('optional phone is delivered and invalid phone is rejected',async()=>{
       await submit({...data,phone:'+44 7789 755330'});
@@ -58,7 +62,7 @@ test('Contact delivery and failure handling',async t=>{
       assert.equal((await submit({...data,website:'bot.example'})).status,200);
       const response=await submit(data,{});
       assert.equal(response.status,503);
-      assert.ok((await response.json()).error.includes('mariusz.moniuszko@gmail.com'));
+      assert.ok((await response.json()).error.includes('info@mam.london'));
       assert.equal(calls.length,0);
     });
     await t.test('upstream errors and network failures never report success',async()=>{

@@ -31,10 +31,10 @@ if(form) {
     try {
       const response=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,requestId}),signal:AbortSignal.timeout(20000)});
       const result=await response.json();
-      if(!response.ok || !result.success)throw new Error(result.error||'Your enquiry could not be sent. Please try again or email mariusz.moniuszko@gmail.com.');
+      if(!response.ok || !result.success)throw new Error(result.error||'Your enquiry could not be sent. Please try again or email info@mam.london.');
       status.textContent='Thank you. We’ll be in touch to discuss your project.';status.dataset.state='success';status.className='form-status form-status-sent';form.reset();lastPayload='';requestId='';
     } catch(error) {
-      status.textContent=error.name==='TimeoutError'?'The request timed out. Please try again or email mariusz.moniuszko@gmail.com.':error.message;
+      status.textContent=error.name==='TimeoutError'?'The request timed out. Please try again or email info@mam.london.':error.message;
       status.dataset.state='error';status.className='form-status form-status-error';
     } finally {sending=false;button.disabled=false;button.textContent='Send enquiry';form.removeAttribute('aria-busy');status.hidden=false;}
   });
